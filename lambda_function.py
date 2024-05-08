@@ -4,25 +4,33 @@ from fastapi import FastAPI, Request, HTTPException
 from mangum import Mangum
 from pydantic import BaseModel
 from api.config_parser import ConfigParser
-from api.chat_service import ChatGptService
-from api.create_openai_client import get_client
+from api.chat_service import ChatService
+from api.create_client import get_grok_client
 import traceback
 
 import boto3
 
 
-# class RequestModel(BaseModel):
-#     request: dict
+# SESSION = boto3.Session(
+#     profile_name="viswa-admin", region_name="us-east-1"
+# )  # for local machine
+SESSION = boto3.Session(region_name="us-east-1")  # lambda doesnt recognize profiles
 
-SESSION = boto3.Session(profile_name="viswa-admin", region_name="us-east-1")
-CHAT_GPT_KEY = ConfigParser(session=SESSION).load_config(
-    parameter_name="/hoabot/chatgpt/apikey"
-)
-OPEN_AI_CLIENT = get_client(openai_key=CHAT_GPT_KEY)
+
+# #openai client
+# KEY = ConfigParser(session=SESSION).load_config(
+#     parameter_name="/hoabot/chatgpt/apikey"
+# )
+# CLIENT = get_openai_client(api_key=CHAT_GPT_KEY)
+
+
+# groq_client
+KEY = ConfigParser(session=SESSION).load_config(parameter_name="/hoabot/groq/apikey")
+CLIENT = get_grok_client(api_key=KEY)
 
 
 app = FastAPI()
-# lambda_handler = Mangum(app) #doesnot work in local machine , use app instead
+lambda_handler = Mangum(app)  # doesnot work in local machine , use app instead
 
 
 @app.get("/random_id_generator")
@@ -43,9 +51,7 @@ async def chat(request: Request):
             detail='No message provided, please provide in this format {"message":"HI, how  are you?"}',
         )
     try:
-        response = ChatGptService.get_completion(
-            client=OPEN_AI_CLIENT, prompt=user_message
-        )
+        response = ChatService.get_groq_completion(client=CLIENT, prompt=user_message)
 
     except:
         traceback.print_exc()

@@ -12,8 +12,9 @@ class ConfigParser:
             response = self.ssm_client.get_parameter(
                 Name=parameter_name, WithDecryption=True
             )
-            config_json = response["Parameter"]["Value"]
+            key = response["Parameter"]["Value"]
+            print("openai key---------->", key)
             # Validate and return the configuration {"key":"xxxxxxxxxxxx"}
-            return json.loads(config_json)["key"]
+            return key
         except ClientError as e:
             raise Exception(f"Failed to fetch parameter: {e}")

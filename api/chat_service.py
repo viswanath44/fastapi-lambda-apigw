@@ -8,10 +8,10 @@
 import openai
 
 
-class ChatGptService:
+class ChatService:
 
     @staticmethod
-    def get_completion(client, prompt, model="gpt-3.5-turbo"):
+    def get_openai_completion(client, prompt, model="gpt-3.5-turbo"):
         messages = [{"role": "user", "content": prompt}]
 
         response = client.chat.completions.create(
@@ -21,3 +21,17 @@ class ChatGptService:
         )
 
         return response.choices[0].message["content"]
+
+    @staticmethod
+    def get_groq_completion(client, prompt, model="llama3-8b-8192"):
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            model=model,
+        )
+
+        return chat_completion.choices[0].message.content
